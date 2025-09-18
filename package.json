@@ -1,0 +1,44 @@
+{
+  "name": "playwright-server",
+  "version": "1.0.0",
+  "description": "A Node.js server for managing Playwright browser instances with on-demand creation, TTL cleanup, and support for WebKit and Chrome browsers",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js",
+    "test": "jest",
+    "lint": "eslint src/",
+    "lint:fix": "eslint src/ --fix"
+  },
+  "keywords": [
+    "playwright",
+    "browser",
+    "automation",
+    "webkit",
+    "chrome",
+    "proxy",
+    "websocket"
+  ],
+  "author": "Sam Huang <teaegg.love@gmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "playwright": "^1.55.0",
+    "http-proxy": "^1.18.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1",
+    "eslint": "^8.50.0",
+    "jest": "^29.7.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/teaegg/playwright-server.git"
+  },
+  "bugs": {
+    "url": "https://github.com/teaegg/playwright-server/issues"
+  },
+  "homepage": "https://github.com/teaegg/playwright-server#readme"
+}
