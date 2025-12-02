@@ -2,7 +2,6 @@ module.exports = {
   apps: [{
     name: 'playwright-server',
     script: './src/server.js',
-    cwd: '/Users/gk/Projects/playwright-server',
     env: {
       NODE_ENV: 'production',
       DEBUG: '',  // 生产环境不输出debug日志
