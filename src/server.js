@@ -4,6 +4,10 @@ const http = require('http');
 const httpProxy = require('http-proxy');
 const BrowserManager = require('./BrowserManager');
 const config = require('../config/default');
+const dbg = require('debug');
+
+const debug = dbg('debug:server');
+const info = dbg('info:server');
 
 class PlaywrightServer {
   constructor() {
@@ -16,7 +20,7 @@ class PlaywrightServer {
    * Create and start the proxy server
    */
   async start() {
-    console.log('🚀 Starting Playwright proxy server...\n');
+    info('🚀 Starting Playwright proxy server...\n');
 
     try {
       // Create HTTP proxy
@@ -39,27 +43,27 @@ class PlaywrightServer {
 
       // Start server
       this.proxyServer.listen(config.server.port, config.server.host, () => {
-        console.log(`✅ Playwright proxy server started successfully!`);
-        console.log(`   Server listening on ${config.server.host}:${config.server.port}`);
-        console.log(`   Config host: ${config.server.host}`);
-        console.log(`   WebKit servers will be created on-demand (starting from port ${config.browsers.webkit.startPort})`);
-        console.log(`   Chrome servers will be created on-demand (starting from port ${config.browsers.chrome.startPort})`);
-        console.log(`   Server TTL: ${config.browsers.webkit.ttl / 1000 / 60} minutes`);
-        console.log(`   Available WebSocket paths:`);
-        console.log(`     ws://${config.server.host}:${config.server.port}/webkit-<index> → WebKit Server (on-demand)`);
-        console.log(`     ws://${config.server.host}:${config.server.port}/chrome-<index> → Chrome Server (on-demand)`);
-        console.log('\n⚠️  Server will keep running...');
+        info(`✅ Playwright proxy server started successfully!`);
+        info(`   Server listening on ${config.server.host}:${config.server.port}`);
+        info(`   Config host: ${config.server.host}`);
+        info(`   WebKit servers will be created on-demand (starting from port ${config.browsers.webkit.startPort})`);
+        info(`   Chrome servers will be created on-demand (starting from port ${config.browsers.chrome.startPort})`);
+        info(`   Server TTL: ${config.browsers.webkit.ttl / 1000 / 60} minutes`);
+        info(`   Available WebSocket paths:`);
+        info(`     ws://${config.server.host}:${config.server.port}/webkit-<index> → WebKit Server (on-demand)`);
+        info(`     ws://${config.server.host}:${config.server.port}/chrome-<index> → Chrome Server (on-demand)`);
+        info('\n⚠️  Server will keep running...');
       });
 
       this.proxyServer.on('error', (error) => {
-        console.error(`❌ Proxy server error:`, error.message);
+        debug(`❌ Proxy server error:`, error.message);
       });
 
       // Setup graceful shutdown
       this.setupGracefulShutdown();
 
     } catch (error) {
-      console.error('\n❌ Failed to start server:', error.message);
+      debug('\n❌ Failed to start server:', error.message);
       await this.cleanup();
       process.exit(1);
     }
@@ -101,7 +105,7 @@ class PlaywrightServer {
       // Parse browser type and index from path
       const match = path.match(/^\/(webkit|chrome)-(\d+)$/);
       if (!match) {
-        console.error(`❌ Invalid WebSocket path: ${path}`);
+        debug(`❌ Invalid WebSocket path: ${path}`);
         socket.destroy();
         return;
       }
@@ -110,7 +114,7 @@ class PlaywrightServer {
       const serverIndex = parseInt(indexStr);
 
       if (isNaN(serverIndex) || serverIndex < 0) {
-        console.error(`❌ Invalid server index: ${indexStr}`);
+        debug(`❌ Invalid server index: ${indexStr}`);
         socket.destroy();
         return;
       }
@@ -121,12 +125,12 @@ class PlaywrightServer {
 
       // Proxy the WebSocket connection
       this.proxy.ws(req, socket, head, { target }, (error) => {
-        console.error(`❌ WebSocket proxy error for ${path}:`, error.message);
+        debug(`❌ WebSocket proxy error for ${path}:`, error.message);
         socket.destroy();
       });
 
     } catch (error) {
-      console.error(`❌ Failed to handle WebSocket upgrade for ${path}:`, error.message);
+      debug(`❌ Failed to handle WebSocket upgrade for ${path}:`, error.message);
       socket.destroy();
     }
   }
@@ -137,25 +141,25 @@ class PlaywrightServer {
   setupGracefulShutdown() {
     // Handle process exit signals
     process.on('SIGINT', async () => {
-      console.log('\n\n🛑 Received SIGINT, shutting down gracefully...');
+      info('\n\n🛑 Received SIGINT, shutting down gracefully...');
       await this.cleanup();
       process.exit(0);
     });
 
     process.on('SIGTERM', async () => {
-      console.log('\n\n🛑 Received SIGTERM, shutting down gracefully...');
+      info('\n\n🛑 Received SIGTERM, shutting down gracefully...');
       await this.cleanup();
       process.exit(0);
     });
 
     process.on('uncaughtException', async (error) => {
-      console.error('\n❌ Uncaught Exception:', error);
+      debug('\n❌ Uncaught Exception:', error);
       await this.cleanup();
       process.exit(1);
     });
 
     process.on('unhandledRejection', async (reason, promise) => {
-      console.error('\n❌ Unhandled Rejection at:', promise, 'reason:', reason);
+      debug('\n❌ Unhandled Rejection at:', promise, 'reason:', reason);
       await this.cleanup();
       process.exit(1);
     });
@@ -165,13 +169,13 @@ class PlaywrightServer {
    * Cleanup resources
    */
   async cleanup() {
-    console.log('\n🧹 Cleaning up server resources...');
+    info('\n🧹 Cleaning up server resources...');
 
     try {
       // Close proxy server
       if (this.proxyServer) {
         this.proxyServer.close();
-        console.log(`✅ Proxy server closed`);
+        info(`✅ Proxy server closed`);
         this.proxyServer = null;
       }
 
@@ -180,10 +184,10 @@ class PlaywrightServer {
         await this.browserManager.cleanup();
       }
 
-      console.log(`✅ All resources cleaned up`);
+      info(`✅ All resources cleaned up`);
 
     } catch (error) {
-      console.error(`❌ Error during cleanup:`, error.message);
+      debug(`❌ Error during cleanup:`, error.message);
     }
   }
 }
@@ -192,7 +196,7 @@ class PlaywrightServer {
 if (require.main === module) {
   const server = new PlaywrightServer();
   server.start().catch(async (error) => {
-    console.error('❌ Startup failed:', error);
+    debug('❌ Startup failed:', error);
     await server.cleanup();
     process.exit(1);
   });

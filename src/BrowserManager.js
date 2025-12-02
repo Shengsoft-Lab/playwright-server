@@ -1,12 +1,16 @@
 const { webkit, chromium } = require('playwright');
 const config = require('../config/default');
+const dbg = require('debug');
+
+const debug = dbg('debug:browser-manager');
+const info = dbg('info:browser-manager');
 
 class BrowserManager {
   constructor() {
     this.servers = new Map(); // Map<string, ServerInfo>
     this.nextServerIndex = 0;
     this.cleanupInterval = null;
-    
+
     // Start cleanup process
     if (config.cleanup.enabled) {
       this.startCleanupProcess();
@@ -35,7 +39,7 @@ class BrowserManager {
     if (this.servers.has(serverKey)) {
       const serverInfo = this.servers.get(serverKey);
       if (this.isServerValid(serverInfo)) {
-        console.log(`♻️  Reusing existing ${browserType} server ${serverIndex} on port ${serverInfo.port}`);
+        debug(`♻️  Reusing existing ${browserType} server ${serverIndex} on port ${serverInfo.port}`);
         return serverInfo;
       } else {
         // Server expired, clean it up
@@ -59,7 +63,7 @@ class BrowserManager {
     const serverKey = `${browserType}-${serverIndex}`;
 
     try {
-      console.log(`🔄 Creating ${browserType} server ${serverIndex} on port ${port}...`);
+      info(`🔄 Creating ${browserType} server ${serverIndex} on port ${port}...`);
 
       let browser;
       if (browserType === 'webkit') {
@@ -89,13 +93,13 @@ class BrowserManager {
 
       this.servers.set(serverKey, serverInfo);
 
-      console.log(`✅ ${browserType} server ${serverIndex} started on port ${port}`);
-      console.log(`   WebSocket path: /${browserType}-${serverIndex}`);
+      info(`✅ ${browserType} server ${serverIndex} started on port ${port}`);
+      info(`   WebSocket path: /${browserType}-${serverIndex}`);
 
       return serverInfo;
 
     } catch (error) {
-      console.error(`❌ Failed to start ${browserType} server ${serverIndex} on port ${port}:`, error.message);
+      debug(`❌ Failed to start ${browserType} server ${serverIndex} on port ${port}:`, error.message);
       throw error;
     }
   }
@@ -158,7 +162,7 @@ class BrowserManager {
       this.cleanupExpiredServers();
     }, config.cleanup.interval);
 
-    console.log(`🧹 Cleanup process started (interval: ${config.cleanup.interval}ms)`);
+    info(`🧹 Cleanup process started (interval: ${config.cleanup.interval}ms)`);
   }
 
   /**
@@ -176,7 +180,7 @@ class BrowserManager {
     }
 
     if (expiredServers.length > 0) {
-      console.log(`🧹 Cleaning up ${expiredServers.length} expired servers...`);
+      info(`🧹 Cleaning up ${expiredServers.length} expired servers...`);
       for (const serverKey of expiredServers) {
         await this.cleanupServer(serverKey);
       }
@@ -196,10 +200,10 @@ class BrowserManager {
     try {
       if (serverInfo.server) {
         await serverInfo.server.close();
-        console.log(`✅ ${serverInfo.type} server ${serverInfo.index} (port ${serverInfo.port}) closed`);
+        info(`✅ ${serverInfo.type} server ${serverInfo.index} (port ${serverInfo.port}) closed`);
       }
     } catch (error) {
-      console.error(`❌ Error closing ${serverInfo.type} server ${serverInfo.index}:`, error.message);
+      debug(`❌ Error closing ${serverInfo.type} server ${serverInfo.index}:`, error.message);
     }
 
     this.servers.delete(serverKey);
@@ -209,7 +213,7 @@ class BrowserManager {
    * Cleanup all servers
    */
   async cleanup() {
-    console.log('\n🧹 Cleaning up all servers...');
+    info('\n🧹 Cleaning up all servers...');
 
     // Stop cleanup interval
     if (this.cleanupInterval) {
@@ -223,7 +227,7 @@ class BrowserManager {
       await this.cleanupServer(serverKey);
     }
 
-    console.log(`✅ All servers cleaned up`);
+    info(`✅ All servers cleaned up`);
   }
 
   /**
