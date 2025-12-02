@@ -16,7 +16,7 @@ module.exports = {
         headless: true,
         args: [
           '--disable-web-security',
-          '--disable-features=VizDisplayCompositor',
+          // 移除 VizDisplayCompositor 禁用，Mac Studio GPU 性能强大
           '--disable-background-timer-throttling',
           '--disable-backgrounding-occluded-windows',
           '--disable-renderer-backgrounding',
@@ -24,11 +24,17 @@ module.exports = {
           '--disable-ipc-flooding-protection',
           '--no-sandbox',
           '--disable-setuid-sandbox',
-          '--disable-dev-shm-usage',
-          '--disable-accelerated-2d-canvas',
+          // 移除 --disable-dev-shm-usage，Mac Studio 内存充足
+          // 移除 --disable-accelerated-2d-canvas，启用硬件加速
+          // 移除 --disable-gpu，启用 GPU 加速
           '--no-first-run',
           '--no-zygote',
-          '--disable-gpu'
+          // Mac Studio 优化参数
+          '--enable-features=Metal',  // 启用 Metal API (macOS GPU 加速)
+          '--use-angle=metal',        // 使用 Metal 作为 ANGLE 后端
+          '--enable-gpu-rasterization', // 启用 GPU 光栅化
+          '--enable-zero-copy',       // 启用零拷贝
+          '--disable-software-rasterizer' // 禁用软件光栅化
         ]
       }
     },
@@ -42,7 +48,7 @@ module.exports = {
         headless: true,
         args: [
           '--disable-web-security',
-          '--disable-features=VizDisplayCompositor',
+          // 移除 VizDisplayCompositor 禁用，Mac Studio GPU 性能强大
           '--disable-background-timer-throttling',
           '--disable-backgrounding-occluded-windows',
           '--disable-renderer-backgrounding',
@@ -50,13 +56,21 @@ module.exports = {
           '--disable-ipc-flooding-protection',
           '--no-sandbox',
           '--disable-setuid-sandbox',
-          '--disable-dev-shm-usage',
-          '--disable-accelerated-2d-canvas',
+          // 移除 --disable-dev-shm-usage，Mac Studio 内存充足
+          // 移除 --disable-accelerated-2d-canvas，启用硬件加速
+          // 移除 --disable-gpu，启用 GPU 加速
           '--no-first-run',
           '--no-zygote',
-          '--disable-gpu',
           '--disable-extensions',
-          '--disable-default-apps'
+          '--disable-default-apps',
+          // Mac Studio 优化参数
+          '--enable-features=Metal',  // 启用 Metal API (macOS GPU 加速)
+          '--use-angle=metal',        // 使用 Metal 作为 ANGLE 后端
+          '--enable-gpu-rasterization', // 启用 GPU 光栅化
+          '--enable-zero-copy',       // 启用零拷贝
+          '--disable-software-rasterizer', // 禁用软件光栅化
+          '--force-color-profile=srgb', // 强制使用 sRGB 色彩配置
+          '--enable-accelerated-video-decode' // 启用硬件视频解码
         ]
       }
     }
