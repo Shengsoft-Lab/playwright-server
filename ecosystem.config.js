@@ -5,6 +5,7 @@ module.exports = {
     env: {
       NODE_ENV: 'production',
       DEBUG: '',  // 生产环境不输出debug日志
+      HOST: '0.0.0.0',  // 监听所有地址
       PORT: '9001'  // 设置端口为 9001
     },
     env_dev: {
