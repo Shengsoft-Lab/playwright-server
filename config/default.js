@@ -11,7 +11,7 @@ module.exports = {
     webkit: {
       startPort: parseInt(process.env.WEBKIT_START_PORT) || 20000,
       enabled: process.env.WEBKIT_ENABLED !== 'false',
-      ttl: parseInt(process.env.WEBKIT_TTL) || 2 * 60 * 60 * 1000, // 2 hours in milliseconds
+      ttl: parseInt(process.env.WEBKIT_TTL) || 6 * 60 * 1000,
       launchOptions: {
         headless: true,
         args: [
@@ -43,7 +43,7 @@ module.exports = {
     chrome: {
       startPort: parseInt(process.env.CHROME_START_PORT) || 30000,
       enabled: process.env.CHROME_ENABLED !== 'false',
-      ttl: parseInt(process.env.CHROME_TTL) || 2 * 60 * 60 * 1000, // 2 hours in milliseconds
+      ttl: parseInt(process.env.WEBKIT_TTL) || 6 * 60 * 1000,
       launchOptions: {
         headless: true,
         args: [
